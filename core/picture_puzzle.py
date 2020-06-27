@@ -7,7 +7,7 @@ from collections import defaultdict
 SCREEN_WIDTH = 1600
 SCREEN_HEIGHT = 900
 
-image_path = 'harry_potter.jpg'
+image_path = 'data/harry_potter.jpg'
 im = cv2.imread(image_path)
 width, height = im.shape[0], im.shape[1]
 size = min(width, height)
