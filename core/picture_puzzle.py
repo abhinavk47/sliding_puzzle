@@ -3,20 +3,19 @@ import random
 import time
 import cv2
 from collections import defaultdict 
+import sys
+import os
+PACKAGE_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0,PACKAGE_ROOT)
+from config.constants import *
 
-SCREEN_WIDTH = 1600
-SCREEN_HEIGHT = 900
-
-image_path = 'data/harry_potter.jpg'
-im = cv2.imread(image_path)
+im = cv2.imread(IMAGE_PATH)
 width, height = im.shape[0], im.shape[1]
 size = min(width, height)
 
-puzzle_n = 4
-piece_size = size//puzzle_n
-piece_scaled_size = 100
-if puzzle_n>9:
-    piece_scaled_size-=(puzzle_n-9)*10
+piece_size = size//PUZZLE_N
+if PUZZLE_N>SIZE_OFFSET:
+    PIECE_SCALED_SIZE-=(PUZZLE_N-SIZE_OFFSET)*10
 
 class MyGame(arcade.Window):
     def __init__(self):
@@ -29,10 +28,10 @@ class MyGame(arcade.Window):
         pos_x, pos_y: position of target piece to animate transition
         alpha: transparency of the target piece during transition
         """
-        super().__init__(SCREEN_WIDTH, SCREEN_HEIGHT, title="puzzle")
+        super().__init__(SCREEN_WIDTH, SCREEN_HEIGHT, title=PUZZLE_TITLE)
         self.picture_textures = {}
-        self.empty_no = puzzle_n**2-1
-        for i in range(0, puzzle_n**2):
+        self.empty_no = PUZZLE_N**2-1
+        for i in range(0, PUZZLE_N**2):
             if i==self.empty_no:
                 self.picture_textures.update({
                     i:[None, i]
@@ -41,8 +40,8 @@ class MyGame(arcade.Window):
             self.picture_textures.update({
                     i:[
                         arcade.load_texture(
-                            image_path,
-                            x=piece_size*(i%(puzzle_n)), y=piece_size*(i//(puzzle_n)),
+                            IMAGE_PATH,
+                            x=piece_size*(i%(PUZZLE_N)), y=piece_size*(i//(PUZZLE_N)),
                             width=piece_size, height=piece_size
                         ),
                         i
@@ -81,9 +80,9 @@ class MyGame(arcade.Window):
         """
         Scramble the pieces
         """
-        for _ in range(2000):
-            x = random.randint(200, piece_scaled_size*puzzle_n+200)
-            y = random.randint(200, piece_scaled_size*puzzle_n+200)
+        for _ in range(NO_OF_RND_HITS):
+            x = random.randint(X_OFFSET, PIECE_SCALED_SIZE*PUZZLE_N+X_OFFSET)
+            y = random.randint(Y_OFFSET, PIECE_SCALED_SIZE*PUZZLE_N+Y_OFFSET)
             self.on_mouse_press(x, y, arcade.MOUSE_BUTTON_LEFT, "modifiers")
             self.on_mouse_release(x, y, arcade.MOUSE_BUTTON_LEFT, "modifiers")
         self.steps = []
@@ -95,10 +94,10 @@ class MyGame(arcade.Window):
         """
         speed = 200
         self.alpha = 150
-        if abs(self.curr_pos-self.empty_no)==1 and abs(self.pos_x)<=piece_scaled_size:
+        if abs(self.curr_pos-self.empty_no)==1 and abs(self.pos_x)<=PIECE_SCALED_SIZE:
             self.pos_x += (self.curr_pos-self.empty_no)*dt*speed
-        elif abs(self.curr_pos-self.empty_no)%puzzle_n==0 and abs(self.pos_y)<=piece_scaled_size:
-            self.pos_y += ((self.curr_pos-self.empty_no)//puzzle_n)*dt*speed
+        elif abs(self.curr_pos-self.empty_no)%PUZZLE_N==0 and abs(self.pos_y)<=PIECE_SCALED_SIZE:
+            self.pos_y += ((self.curr_pos-self.empty_no)//PUZZLE_N)*dt*speed
 
     def rectangle_params(self, pos, is_curr):
         """
@@ -108,9 +107,9 @@ class MyGame(arcade.Window):
         if is_curr:
             pos_x, pos_y, alpha = -self.pos_x, self.pos_y, self.alpha
         return {
-            "bottom_left_x":200+piece_scaled_size*(pos%puzzle_n)+pos_x, 
-            "bottom_left_y":200+(puzzle_n-1)*piece_scaled_size-piece_scaled_size*(pos//puzzle_n)+pos_y, 
-            "width":piece_scaled_size, "height":piece_scaled_size, 
+            "bottom_left_x":X_OFFSET+PIECE_SCALED_SIZE*(pos%PUZZLE_N)+pos_x, 
+            "bottom_left_y":Y_OFFSET+(PUZZLE_N-1)*PIECE_SCALED_SIZE-PIECE_SCALED_SIZE*(pos//PUZZLE_N)+pos_y, 
+            "width":PIECE_SCALED_SIZE, "height":PIECE_SCALED_SIZE, 
             "texture":self.picture_textures[pos][0], 
             "alpha":alpha
         }
@@ -124,10 +123,10 @@ class MyGame(arcade.Window):
             pos_x, pos_y = -self.pos_x, self.pos_y
         return self.picture_textures[pos][1]==pos, {
             "text":str(self.picture_textures[pos][1]), 
-            "start_x":200+piece_scaled_size//2+piece_scaled_size*(pos%puzzle_n)+pos_x, 
-            "start_y":200+piece_scaled_size//2+(puzzle_n-1)*piece_scaled_size-piece_scaled_size*(pos//puzzle_n)+pos_y, 
+            "start_x":X_OFFSET+PIECE_SCALED_SIZE//2+PIECE_SCALED_SIZE*(pos%PUZZLE_N)+pos_x, 
+            "start_y":Y_OFFSET+PIECE_SCALED_SIZE//2+(PUZZLE_N-1)*PIECE_SCALED_SIZE-PIECE_SCALED_SIZE*(pos//PUZZLE_N)+pos_y, 
             "color":arcade.color.CADET_GREY, 
-            "font_size":piece_scaled_size*40//100, 
+            "font_size":PIECE_SCALED_SIZE*40//100, 
             "anchor_x":"center",
             "anchor_y":"center",
             "bold": True
@@ -168,7 +167,7 @@ class MyGame(arcade.Window):
         """
         arcade.start_render()
         is_done = True
-        for i in range(0, puzzle_n**2):
+        for i in range(0, PUZZLE_N**2):
             if i==self.empty_no:
                 continue
             if i!=self.curr_pos:
@@ -249,29 +248,29 @@ class MyGame(arcade.Window):
         if key==arcade.key.Q:
             self.close()
         elif key==arcade.key.LEFT:
-            if self.empty_no%puzzle_n!=puzzle_n-1:
+            if self.empty_no%PUZZLE_N!=PUZZLE_N-1:
                 self.curr_pos = self.empty_no+1
                 if len(self.steps)>2:
                     self.steps.pop(0)
                 self.steps.append('LEFT')
                 self.moves+=1
         elif key==arcade.key.RIGHT:
-            if self.empty_no%puzzle_n!=0:
+            if self.empty_no%PUZZLE_N!=0:
                 self.curr_pos = self.empty_no-1
                 if len(self.steps)>2:
                     self.steps.pop(0)
                 self.steps.append('RIGHT')
                 self.moves+=1
         elif key==arcade.key.UP:
-            if self.empty_no//puzzle_n!=puzzle_n-1:
-                self.curr_pos = self.empty_no+puzzle_n
+            if self.empty_no//PUZZLE_N!=PUZZLE_N-1:
+                self.curr_pos = self.empty_no+PUZZLE_N
                 if len(self.steps)>2:
                     self.steps.pop(0)
                 self.steps.append('UP')
                 self.moves+=1
         elif key==arcade.key.DOWN:
-            if self.empty_no//puzzle_n!=0:
-                self.curr_pos = self.empty_no-puzzle_n
+            if self.empty_no//PUZZLE_N!=0:
+                self.curr_pos = self.empty_no-PUZZLE_N
                 if len(self.steps)>2:
                     self.steps.pop(0)
                 self.steps.append('DOWN')
@@ -285,11 +284,11 @@ class MyGame(arcade.Window):
         Transisiton with mouse press
         """
         if button==arcade.MOUSE_BUTTON_LEFT:
-            if (x>200 and x<piece_scaled_size*puzzle_n+200) and \
-                (y>200 and y<piece_scaled_size*puzzle_n+200):
-                i = ((200+(puzzle_n)*piece_scaled_size-y)//piece_scaled_size)*puzzle_n+(x-200)//piece_scaled_size
+            if (x>X_OFFSET and x<PIECE_SCALED_SIZE*PUZZLE_N+X_OFFSET) and \
+                (y>Y_OFFSET and y<PIECE_SCALED_SIZE*PUZZLE_N+Y_OFFSET):
+                i = ((Y_OFFSET+(PUZZLE_N)*PIECE_SCALED_SIZE-y)//PIECE_SCALED_SIZE)*PUZZLE_N+(x-X_OFFSET)//PIECE_SCALED_SIZE
                 offset=abs(i-self.empty_no)
-                if offset==1 or offset%puzzle_n==0 and offset<=puzzle_n:
+                if offset==1 or offset%PUZZLE_N==0 and offset<=PUZZLE_N:
                     self.curr_pos = i
                     if self.curr_pos-self.empty_no==1:
                         step = 'LEFT'
