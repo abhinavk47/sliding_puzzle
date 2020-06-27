@@ -8,6 +8,7 @@ import os
 PACKAGE_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0,PACKAGE_ROOT)
 from config.constants import *
+from core.graph import Node
 
 im = cv2.imread(IMAGE_PATH)
 width, height = im.shape[0], im.shape[1]
@@ -55,6 +56,32 @@ class MyGame(arcade.Window):
         self.pressed = False
         self.steps = []
         self.moves = 0
+
+    def solve(self):
+        start = time.time()
+        puzzle_list = [self.picture_textures[i][1] for i in self.picture_textures]
+        node = Node(puzzle_list, [])
+        open_list = []
+        open_list.append(node)
+        finished = False
+        moves = None
+
+        while len(open_list)!=0 and not finished:
+            current_node = open_list[0]
+            open_list.pop(0)
+            current_node.make_movement()
+            for x in current_node.children:
+                if x.is_solution():
+                    moves = x.moves
+                    finished = True
+                open_list.append(x)
+        
+        if moves!=None:
+            for move in moves:
+                self.on_key_press(KEY_MAPPING[move], "modifiers")
+                self.on_key_release("key", "modifiers")
+        
+        print(time.time()-start)
 
     def retrace(self):
         """
@@ -224,6 +251,15 @@ class MyGame(arcade.Window):
             **text_params
         )
 
+        text = "Solve"
+        circle_params, text_params = self.button_params(text, 1400, 400, 50, 14, color)
+        arcade.draw_circle_filled(
+            **circle_params
+        )
+        arcade.draw_text(
+            **text_params
+        )
+
         text = "back"
         circle_params, text_params = self.button_params(text, 100, 800, 30, 14, color)
         arcade.draw_circle_filled(
@@ -309,30 +345,14 @@ class MyGame(arcade.Window):
         if (1400-x)**2+(550-y)**2<=50**2:
             self.randomize()
 
+        if (1400-x)**2+(400-y)**2<=50**2:
+            self.solve()
+
         if (100-x)**2+(800-y)**2<=30**2:
             self.retrace()
     
     def on_mouse_release(self, x, y, button, modifiers):
         self.swap_positions()
-
-class Graph:
-    def __init__(self):
-        self.graph = defaultdict(list)
-    def addEdge(self, u, v):
-        self.graph[u].append(v)
-    def BFS(self, s):
-        visited = [False] * (len(self.graph))
-        queue = []
-        queue.append(s)
-        visited[s] = True
-
-        while queue:
-            s = queue.pop(0)
-            print(s, end = " ")
-            for i in self.graph[s]:
-                if visited[i]==False:
-                    queue.append(i)
-                    visited[i]=True
 
 
 if __name__ == "__main__":
