@@ -24,7 +24,7 @@ def BFS(puzzle_list):
     no_of_iterations = 1
     max_moves = (PUZZLE_N**2-(PUZZLE_N-2)**2-1)*(PUZZLE_N-1)*2
 
-    max_distance = PUZZLE_N*max_moves/4
+    max_distance = (PUZZLE_N**2-(PUZZLE_N-2)**2-1)*(2*PUZZLE_N-3)
 
     while len(open_list)!=0 and not finished:
         current_node = open_list[0]
@@ -129,3 +129,14 @@ class Node:
             for j in range(PUZZLE_N):
                 print(self.puzzle[PUZZLE_N*i+j], end = " ")
             print()
+
+if __name__ == "__main__":
+    puzzle = [15,14,13,12,11,9,5,8,7,6,10,4,3,2,1,0]
+    # start = time.time()
+    # moves, no_of_iterations = BFS(puzzle)
+    # print(moves)
+    # print(time.time()-start)
+    # print(no_of_iterations)
+    print(get_distance(puzzle))
+
+
