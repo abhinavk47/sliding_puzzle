@@ -9,8 +9,9 @@ from config.constants import PUZZLE_N
 def get_distance(puzzle):
     distance = 0 
     for i in range(len(puzzle)):
-        distance+=abs(puzzle[i]%PUZZLE_N-i%PUZZLE_N)
-        distance+=abs(puzzle[i]//PUZZLE_N-i//PUZZLE_N)
+        if puzzle[i]!=PUZZLE_N**2-1:
+            distance+=abs(puzzle[i]%PUZZLE_N-i%PUZZLE_N)
+            distance+=abs(puzzle[i]//PUZZLE_N-i//PUZZLE_N)
 
     return distance
 
@@ -21,21 +22,20 @@ def BFS(puzzle_list):
     finished = False
     moves = None
     no_of_iterations = 1
-    threshold = 0
-    for i in range(1,PUZZLE_N):
-        threshold+=2*i*(PUZZLE_N-i)
-        if i%2==1:
-            threshold+=2*(PUZZLE_N-i)
-    threshold *= 2
+    max_moves = (PUZZLE_N**2-(PUZZLE_N-2)**2-1)*(PUZZLE_N-1)*2
+
+    max_distance = PUZZLE_N*max_moves/4
 
     while len(open_list)!=0 and not finished:
         current_node = open_list[0]
         open_list.pop(0)
         current_node.make_movement()
         for x in current_node.children:
-            if len(x.moves)>threshold or (len(x.distances)>threshold//2 and x.distances[-1]>2*(threshold+1-len(x.distances))):
+            if len(x.moves)>max_moves or \
+                (len(x.distances)>max_moves-max_distance and x.distances[-1]>max_moves-len(x.distances)+1):
                 continue
             if x.is_solution():
+                print(x.distances)
                 moves = x.moves
                 finished = True
             open_list.append(x)

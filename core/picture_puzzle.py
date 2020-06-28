@@ -146,7 +146,7 @@ class MyGame(arcade.Window):
             "text":str(self.picture_textures[pos][1]), 
             "start_x":X_OFFSET+PIECE_SCALED_SIZE//2+PIECE_SCALED_SIZE*(pos%PUZZLE_N)+pos_x, 
             "start_y":Y_OFFSET+PIECE_SCALED_SIZE//2+(PUZZLE_N-1)*PIECE_SCALED_SIZE-PIECE_SCALED_SIZE*(pos//PUZZLE_N)+pos_y, 
-            "color":arcade.color.BLACK, 
+            "color":arcade.color.WHITE, 
             "font_size":PIECE_SCALED_SIZE*40//100, 
             "anchor_x":"center",
             "anchor_y":"center",
