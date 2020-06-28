@@ -63,7 +63,7 @@ class Node:
 
     def make_movement(self):
         for i in range(len(self.puzzle)):
-            if self.puzzle[i]==8:
+            if self.puzzle[i]==PUZZLE_N**2-1:
                 x=i
 
         last_move = None
