@@ -13,7 +13,7 @@ SIZE_OFFSET = 9
 
 X_OFFSET, Y_OFFSET = 200, 200
 
-NO_OF_RND_HITS = 200
+NO_OF_RND_HITS = 1000
 
 KEY_MAPPING = {
     'left':arcade.key.LEFT,
