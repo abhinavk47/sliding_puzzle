@@ -21,7 +21,12 @@ def BFS(puzzle_list):
     finished = False
     moves = None
     no_of_iterations = 1
-    threshold = 2*(PUZZLE_N+1)*PUZZLE_N
+    threshold = 0
+    for i in range(1,PUZZLE_N):
+        threshold+=2*i*(PUZZLE_N-i)
+        if i%2==1:
+            threshold+=2*(PUZZLE_N-i)
+    threshold *= 2
 
     while len(open_list)!=0 and not finished:
         current_node = open_list[0]
