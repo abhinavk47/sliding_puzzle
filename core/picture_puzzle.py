@@ -57,7 +57,18 @@ class MyGame(arcade.Window):
         self.steps = []
         self.moves = 0
 
+    def get_distance(self, puzzle):
+        distance = 0 
+        for i in range(len(puzzle)):
+            distance+=abs(puzzle[i]%PUZZLE_N-i%PUZZLE_N)
+            distance+=abs(puzzle[i]//PUZZLE_N-i//PUZZLE_N)
+
+        return distance
+
     def solve(self):
+        """
+        Using BFS to solve
+        """
         start = time.time()
         puzzle_list = [self.picture_textures[i][1] for i in self.picture_textures]
         node = Node(puzzle_list, [])
@@ -65,23 +76,33 @@ class MyGame(arcade.Window):
         open_list.append(node)
         finished = False
         moves = None
+        no_of_iterations = 1
 
         while len(open_list)!=0 and not finished:
             current_node = open_list[0]
             open_list.pop(0)
             current_node.make_movement()
+            nodes = []
             for x in current_node.children:
+                if len(x.moves)>25:
+                    continue
                 if x.is_solution():
                     moves = x.moves
                     finished = True
-                open_list.append(x)
+                nodes.append([x, self.get_distance(x.puzzle)])
+                no_of_iterations+=1
+            nodes.sort(key=lambda x:x[1])
+            for node in nodes:
+                open_list.append(node[0])
         
+        self.moves = 0
         if moves!=None:
             for move in moves:
                 self.on_key_press(KEY_MAPPING[move], "modifiers")
                 self.on_key_release("key", "modifiers")
         
-        print(time.time()-start)
+        print("time taken: " + str(time.time()-start))
+        print("number of iterations: "+str(no_of_iterations))
 
     def retrace(self):
         """
@@ -325,19 +346,22 @@ class MyGame(arcade.Window):
                 i = ((Y_OFFSET+(PUZZLE_N)*PIECE_SCALED_SIZE-y)//PIECE_SCALED_SIZE)*PUZZLE_N+(x-X_OFFSET)//PIECE_SCALED_SIZE
                 offset=abs(i-self.empty_no)
                 if offset==1 or offset%PUZZLE_N==0 and offset<=PUZZLE_N:
-                    self.curr_pos = i
-                    if self.curr_pos-self.empty_no==1:
+                    curr_pos = i
+                    step = None
+                    if curr_pos-self.empty_no==1 and curr_pos%PUZZLE_N!=0:
                         step = 'LEFT'
-                    elif self.curr_pos-self.empty_no==-1:
+                    if curr_pos-self.empty_no==-1 and curr_pos%PUZZLE_N!=PUZZLE_N-1:
                         step = 'RIGHT'
-                    elif self.curr_pos-self.empty_no>0:
+                    if curr_pos>PUZZLE_N-1 and curr_pos-self.empty_no==PUZZLE_N:
                         step = 'UP'
-                    else:
+                    if curr_pos<PUZZLE_N**2-PUZZLE_N and curr_pos-self.empty_no==-PUZZLE_N:
                         step = 'DOWN'
-                    if len(self.steps)>2:
-                        self.steps.pop(0)
-                    self.steps.append(step)
-                    self.moves+=1
+                    if step!=None:
+                        self.curr_pos = curr_pos
+                        if len(self.steps)>2:
+                            self.steps.pop(0)
+                        self.steps.append(step)
+                        self.moves+=1
 
         if (1400-x)**2+(700-y)**2<=50**2:
             self.pressed = ~self.pressed
