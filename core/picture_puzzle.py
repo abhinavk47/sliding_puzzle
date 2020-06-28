@@ -8,7 +8,7 @@ import os
 PACKAGE_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0,PACKAGE_ROOT)
 from config.constants import *
-from core.graph import Node
+from core.graph import Node, get_distance, BFS
 
 im = cv2.imread(IMAGE_PATH)
 width, height = im.shape[0], im.shape[1]
@@ -56,14 +56,8 @@ class MyGame(arcade.Window):
         self.pressed = False
         self.steps = []
         self.moves = 0
+        self.moves_list = []
 
-    def get_distance(self, puzzle):
-        distance = 0 
-        for i in range(len(puzzle)):
-            distance+=abs(puzzle[i]%PUZZLE_N-i%PUZZLE_N)
-            distance+=abs(puzzle[i]//PUZZLE_N-i//PUZZLE_N)
-
-        return distance
 
     def solve(self):
         """
@@ -71,32 +65,12 @@ class MyGame(arcade.Window):
         """
         start = time.time()
         puzzle_list = [self.picture_textures[i][1] for i in self.picture_textures]
-        node = Node(puzzle_list, [])
-        open_list = []
-        open_list.append(node)
-        finished = False
-        moves = None
-        no_of_iterations = 1
-
-        while len(open_list)!=0 and not finished:
-            current_node = open_list[0]
-            open_list.pop(0)
-            current_node.make_movement()
-            nodes = []
-            for x in current_node.children:
-                if len(x.moves)>25:
-                    continue
-                if x.is_solution():
-                    moves = x.moves
-                    finished = True
-                nodes.append([x, self.get_distance(x.puzzle)])
-                no_of_iterations+=1
-            nodes.sort(key=lambda x:x[1])
-            for node in nodes:
-                open_list.append(node[0])
+        
+        moves, no_of_iterations = BFS(puzzle_list)
         
         self.moves = 0
         if moves!=None:
+            self.moves_list = moves
             for move in moves:
                 self.on_key_press(KEY_MAPPING[move], "modifiers")
                 self.on_key_release("key", "modifiers")
@@ -129,10 +103,9 @@ class MyGame(arcade.Window):
         Scramble the pieces
         """
         for _ in range(NO_OF_RND_HITS):
-            x = random.randint(X_OFFSET, PIECE_SCALED_SIZE*PUZZLE_N+X_OFFSET)
-            y = random.randint(Y_OFFSET, PIECE_SCALED_SIZE*PUZZLE_N+Y_OFFSET)
-            self.on_mouse_press(x, y, arcade.MOUSE_BUTTON_LEFT, "modifiers")
-            self.on_mouse_release(x, y, arcade.MOUSE_BUTTON_LEFT, "modifiers")
+            key = random.choice(['left', 'right', 'up', 'down'])
+            self.on_key_press(KEY_MAPPING[key], "modifiers")
+            self.on_key_release("key", "modifiers")
         self.steps = []
         self.moves = 0
 
@@ -173,7 +146,7 @@ class MyGame(arcade.Window):
             "text":str(self.picture_textures[pos][1]), 
             "start_x":X_OFFSET+PIECE_SCALED_SIZE//2+PIECE_SCALED_SIZE*(pos%PUZZLE_N)+pos_x, 
             "start_y":Y_OFFSET+PIECE_SCALED_SIZE//2+(PUZZLE_N-1)*PIECE_SCALED_SIZE-PIECE_SCALED_SIZE*(pos//PUZZLE_N)+pos_y, 
-            "color":arcade.color.CADET_GREY, 
+            "color":arcade.color.BLACK, 
             "font_size":PIECE_SCALED_SIZE*40//100, 
             "anchor_x":"center",
             "anchor_y":"center",
@@ -293,6 +266,15 @@ class MyGame(arcade.Window):
         color = arcade.color.WHITE
         text = "moves: "+str(self.moves)
         _, text_params = self.button_params(text, 300, 800, 30, 25, color)
+        arcade.draw_text(
+            **text_params
+        )
+
+        color = arcade.color.WHITE
+        part_1 = self.moves_list[:10]
+        part_2 = "" if len(self.moves_list[10:])==0 else self.moves_list[10:]
+        text = "moves list: "+str(part_1)+"\n"+str(part_2)
+        _, text_params = self.button_params(text, 300, 700, 30, 13, color)
         arcade.draw_text(
             **text_params
         )
